@@ -1,6 +1,6 @@
 # 🤖 Servidor de Bots WhatsApp
 
-Plataforma para armazenar e gerenciar seus bots de WhatsApp, usando **Supabase** como banco de dados e storage.
+Plataforma para armazenar e gerenciar seus bots de WhatsApp, usando **Neon** (PostgreSQL gratuito) como banco de dados.
 
 ## Funcionalidades
 
@@ -8,29 +8,22 @@ Plataforma para armazenar e gerenciar seus bots de WhatsApp, usando **Supabase**
 - 📋 **Listagem** de todos os bots armazenados
 - ⬇️ **Download** dos bots a qualquer momento
 - 🗑️ **Exclusão** de bots indesejados
-- ☁️ **Armazenamento na nuvem** com Supabase
+- ☁️ **Banco de dados na nuvem** com Neon (PostgreSQL)
 
 ## Pré-requisitos
 
-1. Conta gratuita no [Supabase](https://supabase.com)
+1. Conta gratuita no [Neon](https://neon.tech)
 2. Python 3.8+
 
 ## Como configurar
 
-### 1. Criar projeto no Supabase
+### 1. Criar conta no Neon (gratuito)
 
-1. Acesse [supabase.com](https://supabase.com) e crie uma conta
+1. Acesse [neon.tech](https://neon.tech) e crie uma conta
 2. Crie um novo projeto
-3. Vá em **Settings > API** e copie:
-   - **Project URL** (ex: `https://xyzxyz.supabase.co`)
-   - **anon public** key
+3. No Dashboard, copie a **Connection String** (formato: `postgresql://user:password@host/database?sslmode=require`)
 
-### 2. Configurar o banco de dados
-
-1. No painel do Supabase, vá em **SQL Editor**
-2. Cole e execute o conteúdo do arquivo `supabase_setup.sql`
-
-### 3. Configurar o projeto
+### 2. Configurar o projeto
 
 ```bash
 # Clonar e entrar no diretório
@@ -43,23 +36,24 @@ source .venv/bin/activate
 # Instalar dependências
 pip install -r requirements.txt
 
-# Criar arquivo .env com suas credenciais
+# Criar arquivo .env com sua connection string
 cp .env.example .env
 ```
 
 Edite o arquivo `.env`:
 ```
-SUPABASE_URL=https://SEU_PROJETO.supabase.co
-SUPABASE_KEY=SUA_ANON_KEY_AQUI
+DATABASE_URL=postgresql://user:password@host/database?sslmode=require
 ```
 
-### 4. Iniciar o servidor
+### 3. Iniciar o servidor
 
 ```bash
 python app.py
 ```
 
-### 5. Acessar no navegador
+O servidor criará a tabela `bots` automaticamente na primeira execução.
+
+### 4. Acessar no navegador
 
 Abra [http://localhost:5000](http://localhost:5000)
 
@@ -70,7 +64,7 @@ Servidor_bots/
 ├── app.py              # Servidor Flask
 ├── requirements.txt    # Dependências Python
 ├── .env.example        # Modelo de configuração
-├── supabase_setup.sql  # Script SQL para configurar o Supabase
+├── bots_storage/       # Pasta onde os arquivos dos bots são salvos
 ├── templates/
 │   └── index.html      # Página principal
 └── static/
@@ -91,7 +85,7 @@ Servidor_bots/
 | `GET` | `/bots/<id>/download` | Download do bot |
 | `DELETE` | `/bots/<id>` | Excluir um bot |
 
-## Estrutura no Supabase
+## Estrutura no Neon (PostgreSQL)
 
 ### Tabela `bots`
 
@@ -101,12 +95,14 @@ Servidor_bots/
 | `name` | TEXT | Nome do bot |
 | `description` | TEXT | Descrição do bot |
 | `filename` | TEXT | Nome do arquivo original |
-| `storage_path` | TEXT | Caminho no Supabase Storage |
+| `storage_path` | TEXT | Caminho do arquivo no servidor |
 | `file_size` | BIGINT | Tamanho do arquivo em bytes |
 | `created_at` | TIMESTAMPTZ | Data de criação |
 | `updated_at` | TIMESTAMPTZ | Data de atualização |
 
-### Storage Bucket
+## Vantagens do Neon
 
-- **Nome:** `bots-files`
-- **Acesso:** Público (para download)
+- ✅ **Gratuito**: 512MB de storage + 24/7 compute
+- ✅ **PostgreSQL completo**: Sem limitações de queries
+- ✅ **Serverless**: Escala automaticamente
+- ✅ **SSL**: Conexão segura por padrão
