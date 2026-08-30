@@ -3,232 +3,409 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🤖 Bot Store - Gerencie seus Bots de WhatsApp</title>
+    <title>🤖 Bot Store - WhatsApp Bots</title>
     <link rel="stylesheet" href="css/style.css">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🤖</text></svg>">
 </head>
 <body>
-    <!-- Header -->
-    <header class="header">
-        <div class="container">
-            <div class="header-content">
-                <div class="logo">
-                    <span class="logo-icon">🤖</span>
-                    <div>
-                        <h1>Bot Store</h1>
-                        <p>Gerencie seus bots de WhatsApp</p>
-                    </div>
-                </div>
-                <nav class="nav">
-                    <button class="btn btn-ghost" onclick="showSection('browse')">🏠 Início</button>
-                    <button class="btn btn-ghost" onclick="showSection('upload')">📤 Enviar Bot</button>
-                    <button class="btn btn-ghost" onclick="showSection('mybots')">📋 Meus Bots</button>
-                    <button class="btn btn-primary" id="loginBtn" onclick="showConfig()">⚙️ Configurar</button>
-                </nav>
-                <button class="menu-toggle" onclick="toggleMenu()">☰</button>
-            </div>
-        </div>
-    </header>
 
-    <!-- Config Modal -->
-    <div class="modal" id="configModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>⚙️ Configuração</h2>
-                <button class="modal-close" onclick="closeModal('configModal')">&times;</button>
+    <!-- ============================================================
+         TELA DE LOGIN / REGISTRO
+         ============================================================ -->
+    <div id="authScreen" class="auth-screen">
+        <div class="auth-bg">
+            <div class="auth-particles" id="particles"></div>
+        </div>
+
+        <div class="auth-container">
+            <div class="auth-card">
+                <div class="auth-logo">
+                    <div class="auth-logo-icon">🤖</div>
+                    <h1>Bot Store</h1>
+                    <p>Plataforma de Bots para WhatsApp</p>
+                </div>
+
+                <!-- Tabs Login / Registro -->
+                <div class="auth-tabs">
+                    <button class="auth-tab active" onclick="switchAuthTab('login')">Entrar</button>
+                    <button class="auth-tab" onclick="switchAuthTab('register')">Criar Conta</button>
+                </div>
+
+                <!-- Formulário de Login -->
+                <form id="loginForm" class="auth-form active" onsubmit="handleLogin(event)">
+                    <div class="input-group">
+                        <span class="input-icon">👤</span>
+                        <input type="text" id="loginUser" placeholder="Usuário" required autocomplete="username">
+                    </div>
+                    <div class="input-group">
+                        <span class="input-icon">🔒</span>
+                        <input type="password" id="loginPass" placeholder="Senha" required autocomplete="current-password">
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-full btn-lg" id="loginBtn">
+                        Entrar
+                    </button>
+                    <div id="loginStatus" class="auth-status"></div>
+                </form>
+
+                <!-- Formulário de Registro -->
+                <form id="registerForm" class="auth-form" onsubmit="handleRegister(event)">
+                    <div class="input-group">
+                        <span class="input-icon">👤</span>
+                        <input type="text" id="regUser" placeholder="Escolha um usuário" required autocomplete="off">
+                    </div>
+                    <div class="input-group">
+                        <span class="input-icon">📧</span>
+                        <input type="email" id="regEmail" placeholder="Seu e-mail" required autocomplete="off">
+                    </div>
+                    <div class="input-group">
+                        <span class="input-icon">🔒</span>
+                        <input type="password" id="regPass" placeholder="Crie uma senha" required minlength="4" autocomplete="new-password">
+                    </div>
+                    <div class="input-group">
+                        <span class="input-icon">🔒</span>
+                        <input type="password" id="regPassConfirm" placeholder="Confirme a senha" required minlength="4" autocomplete="new-password">
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-full btn-lg" id="regBtn">
+                        Criar Conta
+                    </button>
+                    <div id="regStatus" class="auth-status"></div>
+                </form>
+
+                <div class="auth-footer">
+                    <p>Ao entrar, você concorda com os termos de uso da plataforma.</p>
+                </div>
             </div>
-            <div class="modal-body">
-                <p class="info-text">Para enviar bots, você precisa de um <strong>Token do GitHub</strong>.</p>
-                <div class="steps">
-                    <div class="step">
-                        <span class="step-num">1</span>
-                        <div>
-                            <strong>Acesse GitHub Settings</strong>
-                            <p>Settings → Developer settings → Personal access tokens → Fine-grained tokens</p>
-                        </div>
-                    </div>
-                    <div class="step">
-                        <span class="step-num">2</span>
-                        <div>
-                            <strong>Crie um token</strong>
-                            <p>Dê permissão de <code>Contents</code> (Read and Write) neste repositório</p>
-                        </div>
-                    </div>
-                    <div class="step">
-                        <span class="step-num">3</span>
-                        <div>
-                            <strong>Cole o token abaixo</strong>
-                            <p>O token fica salvo apenas no seu navegador</p>
-                        </div>
+
+            <div class="auth-features">
+                <div class="feature-item">
+                    <span class="feature-icon">📤</span>
+                    <div>
+                        <h3>Envie seus bots</h3>
+                        <p>Faça upload e compartilhe com a comunidade</p>
                     </div>
                 </div>
-                <div class="form-group">
-                    <label for="githubToken">GitHub Token:</label>
-                    <input type="password" id="githubToken" placeholder="ghp_xxxxxxxxxxxx" autocomplete="off">
+                <div class="feature-item">
+                    <span class="feature-icon">⬇️</span>
+                    <div>
+                        <h3>Download grátis</h3>
+                        <p>Baixe qualquer bot disponível na plataforma</p>
+                    </div>
                 </div>
-                <div class="form-group">
-                    <label for="githubUser">Seu nome de usuário GitHub:</label>
-                    <input type="text" id="githubUser" placeholder="seu-usuario" autocomplete="off">
+                <div class="feature-item">
+                    <span class="feature-icon">📊</span>
+                    <div>
+                        <h3>Painel completo</h3>
+                        <p>Gerencie todos os seus bots em um só lugar</p>
+                    </div>
                 </div>
-                <button class="btn btn-primary btn-full" onclick="saveConfig()">💾 Salvar Configuração</button>
-                <div id="configStatus"></div>
             </div>
         </div>
     </div>
 
-    <!-- Main Content -->
-    <main class="main">
-        <div class="container">
+    <!-- ============================================================
+         APP PRINCIPAL (após login)
+         ============================================================ -->
+    <div id="appScreen" class="app-screen" style="display: none;">
 
-            <!-- Browse Section -->
-            <section id="browseSection" class="section active">
-                <div class="section-header">
-                    <h2>🏪 Bots Disponíveis</h2>
-                    <div class="search-bar">
-                        <input type="text" id="searchInput" placeholder="🔍 Buscar bots..." oninput="filterBots()">
-                        <select id="categoryFilter" onchange="filterBots()">
-                            <option value="all">Todas categorias</option>
-                            <option value="atendimento">Atendimento</option>
-                            <option value="vendas">Vendas</option>
-                            <option value="utilidades">Utilidades</option>
-                            <option value="jogos">Jogos</option>
-                            <option value="outros">Outros</option>
-                        </select>
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-logo">
+                    <span>🤖</span>
+                    <div>
+                        <h2>Bot Store</h2>
+                        <small>WhatsApp Bots</small>
                     </div>
                 </div>
+                <button class="sidebar-close" onclick="toggleSidebar()">✕</button>
+            </div>
 
-                <div class="stats-bar">
-                    <div class="stat">
-                        <span class="stat-num" id="totalBots">0</span>
-                        <span class="stat-label">Bots</span>
-                    </div>
-                    <div class="stat">
-                        <span class="stat-num" id="totalDownloads">0</span>
-                        <span class="stat-label">Downloads</span>
-                    </div>
-                    <div class="stat">
-                        <span class="stat-num" id="totalUsers">0</span>
-                        <span class="stat-label">Criadores</span>
+            <div class="sidebar-user">
+                <div class="user-avatar" id="userAvatar">U</div>
+                <div class="user-info">
+                    <strong id="userName">Usuário</strong>
+                    <small id="userEmail">email@email.com</small>
+                </div>
+            </div>
+
+            <nav class="sidebar-nav">
+                <button class="nav-item active" onclick="showPage('dashboard')" data-page="dashboard">
+                    <span class="nav-icon">📊</span>
+                    <span>Dashboard</span>
+                </button>
+                <button class="nav-item" onclick="showPage('explore')" data-page="explore">
+                    <span class="nav-icon">🏪</span>
+                    <span>Explorar Bots</span>
+                </button>
+                <button class="nav-item" onclick="showPage('upload')" data-page="upload">
+                    <span class="nav-icon">📤</span>
+                    <span>Enviar Bot</span>
+                </button>
+                <button class="nav-item" onclick="showPage('mybots')" data-page="mybots">
+                    <span class="nav-icon">📋</span>
+                    <span>Meus Bots</span>
+                </button>
+                <button class="nav-item" onclick="showPage('settings')" data-page="settings">
+                    <span class="nav-icon">⚙️</span>
+                    <span>Configurações</span>
+                </button>
+            </nav>
+
+            <div class="sidebar-footer">
+                <button class="btn btn-ghost btn-full" onclick="handleLogout()">
+                    🚪 Sair
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <div class="app-main">
+            <!-- Top Bar -->
+            <header class="topbar">
+                <button class="menu-btn" onclick="toggleSidebar()">☰</button>
+                <div class="topbar-search">
+                    <span>🔍</span>
+                    <input type="text" id="globalSearch" placeholder="Buscar bots..." oninput="handleGlobalSearch()">
+                </div>
+                <div class="topbar-actions">
+                    <button class="topbar-btn" onclick="showPage('upload')" title="Enviar bot">
+                        ➕
+                    </button>
+                    <div class="topbar-user" onclick="toggleUserMenu()">
+                        <div class="user-avatar-sm" id="topbarAvatar">U</div>
+                        <div class="user-dropdown" id="userDropdown">
+                            <div class="dropdown-header">
+                                <strong id="dropdownName">Usuário</strong>
+                                <small id="dropdownEmail">email</small>
+                            </div>
+                            <div class="dropdown-divider"></div>
+                            <button onclick="showPage('settings')">⚙️ Configurações</button>
+                            <button onclick="handleLogout()">🚪 Sair</button>
+                        </div>
                     </div>
                 </div>
+            </header>
 
-                <div id="botsGrid" class="bots-grid">
-                    <div class="loading">
-                        <div class="spinner"></div>
-                        <p>Carregando bots...</p>
-                    </div>
-                </div>
-            </section>
+            <!-- Pages -->
+            <div class="page-container">
 
-            <!-- Upload Section -->
-            <section id="uploadSection" class="section">
-                <div class="section-header">
-                    <h2>📤 Enviar Novo Bot</h2>
-                    <p class="subtitle">Compartilhe seu bot com a comunidade</p>
-                </div>
-
-                <form id="uploadForm" class="upload-form" onsubmit="handleUpload(event)">
-                    <div class="form-grid">
-                        <div class="form-group">
-                            <label for="botName">Nome do Bot *</label>
-                            <input type="text" id="botName" required placeholder="Ex: Bot de Atendimento">
+                <!-- DASHBOARD -->
+                <div id="page-dashboard" class="page active">
+                    <div class="page-header">
+                        <div>
+                            <h1>Bem-vindo de volta! 👋</h1>
+                            <p>Gerencie seus bots e explore novos</p>
                         </div>
-                        <div class="form-group">
-                            <label for="botCategory">Categoria *</label>
-                            <select id="botCategory" required>
-                                <option value="">Selecione...</option>
-                                <option value="atendimento">📞 Atendimento</option>
-                                <option value="vendas">💰 Vendas</option>
-                                <option value="utilidades">🔧 Utilidades</option>
-                                <option value="jogos">🎮 Jogos</option>
-                                <option value="outros">📦 Outros</option>
-                            </select>
-                        </div>
+                        <button class="btn btn-primary" onclick="showPage('upload')">📤 Enviar Bot</button>
                     </div>
 
-                    <div class="form-group">
-                        <label for="botDescription">Descrição *</label>
-                        <textarea id="botDescription" required placeholder="Descreva o que seu bot faz, funcionalidades principais..." rows="4"></textarea>
-                    </div>
-
-                    <div class="form-grid">
-                        <div class="form-group">
-                            <label for="botVersion">Versão</label>
-                            <input type="text" id="botVersion" placeholder="1.0.0" value="1.0.0">
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-icon" style="background: rgba(108,92,231,0.15); color: #a29bfe;">🤖</div>
+                            <div class="stat-info">
+                                <span class="stat-value" id="dashTotalBots">0</span>
+                                <span class="stat-label">Total de Bots</span>
+                            </div>
                         </div>
-                        <div class="form-group">
-                            <label for="botAuthor">Autor</label>
-                            <input type="text" id="botAuthor" placeholder="Seu nome">
+                        <div class="stat-card">
+                            <div class="stat-icon" style="background: rgba(0,206,201,0.15); color: #00cec9;">⬇️</div>
+                            <div class="stat-info">
+                                <span class="stat-value" id="dashTotalDownloads">0</span>
+                                <span class="stat-label">Downloads</span>
+                            </div>
                         </div>
-                    </div>
-
-                    <div class="form-group">
-                        <label>Arquivo do Bot *</label>
-                        <div class="file-drop" id="fileDrop" onclick="document.getElementById('botFile').click()">
-                            <input type="file" id="botFile" required hidden onchange="handleFileSelect(this)">
-                            <div class="file-drop-content" id="fileDropContent">
-                                <span class="file-icon">📁</span>
-                                <p>Arraste o arquivo aqui ou <strong>clique para selecionar</strong></p>
-                                <small>.zip, .js, .py, .json (máx. 50MB)</small>
+                        <div class="stat-card">
+                            <div class="stat-icon" style="background: rgba(254,202,87,0.15); color: #feca57;">👤</div>
+                            <div class="stat-info">
+                                <span class="stat-value" id="dashTotalUsers">0</span>
+                                <span class="stat-label">Usuários</span>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon" style="background: rgba(255,107,107,0.15); color: #ff6b6b;">📋</div>
+                            <div class="stat-info">
+                                <span class="stat-value" id="dashMyBots">0</span>
+                                <span class="stat-label">Meus Bots</span>
                             </div>
                         </div>
                     </div>
 
-                    <div class="form-group">
-                        <label for="botReadme">README (opcional)</label>
-                        <textarea id="botReadme" placeholder="Instruções de instalação, uso, dependências..." rows="4"></textarea>
+                    <div class="section-title">
+                        <h2>🔥 Bots Recentes</h2>
+                        <button class="btn btn-ghost btn-sm" onclick="showPage('explore')">Ver todos →</button>
                     </div>
-
-                    <button type="submit" class="btn btn-primary btn-full btn-lg" id="submitBtn">
-                        🚀 Publicar Bot
-                    </button>
-
-                    <div id="uploadStatus"></div>
-                </form>
-            </section>
-
-            <!-- My Bots Section -->
-            <section id="mybotsSection" class="section">
-                <div class="section-header">
-                    <h2>📋 Meus Bots</h2>
-                    <p class="subtitle">Gerencie os bots que você enviou</p>
+                    <div id="dashRecentBots" class="bots-grid"></div>
                 </div>
-                <div id="myBotsGrid" class="bots-grid">
-                    <div class="empty-state">
-                        <span class="empty-icon">🤖</span>
-                        <h3>Nenhum bot ainda</h3>
-                        <p>Configure seu token e envie seu primeiro bot!</p>
-                        <button class="btn btn-primary" onclick="showSection('upload')">📤 Enviar Bot</button>
-                    </div>
-                </div>
-            </section>
 
-            <!-- Bot Detail Modal -->
-            <div class="modal" id="botModal">
-                <div class="modal-content modal-lg">
-                    <div class="modal-header">
-                        <h2 id="modalBotName">Nome do Bot</h2>
-                        <button class="modal-close" onclick="closeModal('botModal')">&times;</button>
+                <!-- EXPLORAR -->
+                <div id="page-explore" class="page">
+                    <div class="page-header">
+                        <div>
+                            <h1>Explorar Bots 🏪</h1>
+                            <p>Descubra bots incríveis da comunidade</p>
+                        </div>
                     </div>
-                    <div class="modal-body" id="modalBotContent">
+
+                    <div class="filter-bar">
+                        <div class="filter-search">
+                            <span>🔍</span>
+                            <input type="text" id="exploreSearch" placeholder="Buscar por nome, descrição ou autor..." oninput="filterExplore()">
+                        </div>
+                        <div class="filter-tags">
+                            <button class="tag-btn active" onclick="filterByCategory(this, 'all')">Todos</button>
+                            <button class="tag-btn" onclick="filterByCategory(this, 'atendimento')">📞 Atendimento</button>
+                            <button class="tag-btn" onclick="filterByCategory(this, 'vendas')">💰 Vendas</button>
+                            <button class="tag-btn" onclick="filterByCategory(this, 'utilidades')">🔧 Utilidades</button>
+                            <button class="tag-btn" onclick="filterByCategory(this, 'jogos')">🎮 Jogos</button>
+                            <button class="tag-btn" onclick="filterByCategory(this, 'outros')">📦 Outros</button>
+                        </div>
+                    </div>
+
+                    <div id="exploreGrid" class="bots-grid"></div>
+                </div>
+
+                <!-- UPLOAD -->
+                <div id="page-upload" class="page">
+                    <div class="page-header">
+                        <div>
+                            <h1>Enviar Bot 📤</h1>
+                            <p>Compartilhe seu bot com a comunidade</p>
+                        </div>
+                    </div>
+
+                    <form id="uploadForm" class="upload-form" onsubmit="handleUpload(event)">
+                        <div class="form-card">
+                            <h3>📝 Informações do Bot</h3>
+                            <div class="form-grid">
+                                <div class="form-group">
+                                    <label>Nome do Bot *</label>
+                                    <input type="text" id="botName" required placeholder="Ex: Bot de Atendimento">
+                                </div>
+                                <div class="form-group">
+                                    <label>Categoria *</label>
+                                    <select id="botCategory" required>
+                                        <option value="">Selecione...</option>
+                                        <option value="atendimento">📞 Atendimento</option>
+                                        <option value="vendas">💰 Vendas</option>
+                                        <option value="utilidades">🔧 Utilidades</option>
+                                        <option value="jogos">🎮 Jogos</option>
+                                        <option value="outros">📦 Outros</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label>Descrição *</label>
+                                <textarea id="botDescription" required placeholder="Descreva o que seu bot faz, funcionalidades principais..." rows="3"></textarea>
+                            </div>
+                            <div class="form-grid">
+                                <div class="form-group">
+                                    <label>Versão</label>
+                                    <input type="text" id="botVersion" value="1.0.0" placeholder="1.0.0">
+                                </div>
+                                <div class="form-group">
+                                    <label>Preço</label>
+                                    <select id="botPrice">
+                                        <option value="free">🆓 Gratuito</option>
+                                        <option value="paid">💰 Pago</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-card">
+                            <h3>📁 Arquivo do Bot</h3>
+                            <div class="file-drop" id="fileDrop" onclick="document.getElementById('botFile').click()">
+                                <input type="file" id="botFile" required hidden onchange="handleFileSelect(this)">
+                                <div class="file-drop-content" id="fileDropContent">
+                                    <span class="file-icon">📁</span>
+                                    <p>Arraste o arquivo aqui ou <strong>clique para selecionar</strong></p>
+                                    <small>.zip, .js, .py, .json (máx. 50MB)</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-card">
+                            <h3>📖 Documentação (opcional)</h3>
+                            <div class="form-group">
+                                <label>README / Instruções</label>
+                                <textarea id="botReadme" placeholder="Como instalar, configurar e usar o bot..." rows="5"></textarea>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary btn-full btn-lg" id="submitBtn">
+                            🚀 Publicar Bot
+                        </button>
+
+                        <div id="uploadStatus" class="upload-status"></div>
+                    </form>
+                </div>
+
+                <!-- MEUS BOTS -->
+                <div id="page-mybots" class="page">
+                    <div class="page-header">
+                        <div>
+                            <h1>Meus Bots 📋</h1>
+                            <p>Gerencie os bots que você enviou</p>
+                        </div>
+                        <button class="btn btn-primary" onclick="showPage('upload')">📤 Enviar Bot</button>
+                    </div>
+                    <div id="myBotsGrid" class="bots-grid"></div>
+                </div>
+
+                <!-- CONFIGURAÇÕES -->
+                <div id="page-settings" class="page">
+                    <div class="page-header">
+                        <div>
+                            <h1>Configurações ⚙️</h1>
+                            <p>Gerencie sua conta</p>
+                        </div>
+                    </div>
+
+                    <div class="settings-grid">
+                        <div class="form-card">
+                            <h3>👤 Perfil</h3>
+                            <div class="form-group">
+                                <label>Nome de Usuário</label>
+                                <input type="text" id="settingsUser" disabled>
+                            </div>
+                            <div class="form-group">
+                                <label>E-mail</label>
+                                <input type="email" id="settingsEmail" disabled>
+                            </div>
+                            <div class="form-group">
+                                <label>Membro desde</label>
+                                <input type="text" id="settingsJoined" disabled>
+                            </div>
+                        </div>
+
+                        <div class="form-card">
+                            <h3>🔑 Token GitHub (para enviar bots)</h3>
+                            <p class="form-help">Necessário apenas para publicar bots. Gere em GitHub Settings → Personal access tokens</p>
+                            <div class="form-group">
+                                <label>GitHub Token</label>
+                                <input type="password" id="settingsToken" placeholder="ghp_xxxxxxxxxxxx">
+                            </div>
+                            <button class="btn btn-primary" onclick="saveGithubToken()">💾 Salvar Token</button>
+                            <div id="tokenStatus"></div>
+                        </div>
                     </div>
                 </div>
+
             </div>
-
         </div>
-    </main>
+    </div>
 
-    <!-- Footer -->
-    <footer class="footer">
-        <div class="container">
-            <p>🤖 Bot Store — Feito com ❤️ para a comunidade de bots de WhatsApp</p>
-            <p class="footer-links">
-                <a href="https://github.com/Sr-agente208/Servidor_bots" target="_blank">GitHub</a>
-                <span>•</span>
-                <a href="#" onclick="showConfig()">Configurar Token</a>
-            </p>
+    <!-- Modal de detalhes do bot -->
+    <div class="modal" id="botModal">
+        <div class="modal-overlay" onclick="closeModal('botModal')"></div>
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeModal('botModal')">✕</button>
+            <div id="modalBody"></div>
         </div>
-    </footer>
+    </div>
+
+    <!-- Toast container -->
+    <div id="toastContainer" class="toast-container"></div>
 
     <script src="js/app.js"></script>
 </body>
