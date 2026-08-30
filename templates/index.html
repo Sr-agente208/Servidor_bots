@@ -11,6 +11,7 @@
         <header>
             <h1>🤖 Servidor de Bots WhatsApp</h1>
             <p>Armazene e gerencie seus bots de WhatsApp</p>
+            <span class="badge">Powered by Supabase</span>
         </header>
 
         <section class="upload-section">
@@ -36,17 +37,20 @@
         <section class="bots-section">
             <h2>📋 Seus Bots</h2>
             <div id="botsList" class="bots-grid">
-                {% for bot_id, bot in bots.items() %}
-                <div class="bot-card" data-id="{{ bot_id }}">
+                {% for bot in bots %}
+                <div class="bot-card" data-id="{{ bot.id }}">
                     <h3>{{ bot.name }}</h3>
                     <p class="description">{{ bot.description or 'Sem descrição' }}</p>
                     <div class="bot-meta">
                         <span class="filename">📄 {{ bot.filename }}</span>
-                        <span class="size">{{ "%.2f"|format(bot.size / 1024 / 1024) }} MB</span>
+                        <span class="size">{{ "%.2f"|format(bot.file_size / 1024 / 1024) }} MB</span>
+                    </div>
+                    <div class="bot-date">
+                        📅 {{ bot.created_at[:10] }} {{ bot.created_at[11:16] }}
                     </div>
                     <div class="bot-actions">
-                        <a href="/bots/{{ bot_id }}/download" class="btn btn-download">⬇️ Download</a>
-                        <button class="btn btn-delete" onclick="deleteBot('{{ bot_id }}')">🗑️ Excluir</button>
+                        <a href="/bots/{{ bot.id }}/download" class="btn btn-download">⬇️ Download</a>
+                        <button class="btn btn-delete" onclick="deleteBot('{{ bot.id }}')">🗑️ Excluir</button>
                     </div>
                 </div>
                 {% endfor %}

@@ -1,30 +1,41 @@
-from flask import Flask, render_template, request, jsonify, send_from_directory
+from flask import Flask, render_template, request, jsonify, send_file
 import os
-import json
-import uuid
+import io
 from datetime import datetime
 from werkzeug.utils import secure_filename
+from supabase import create_client, Client
+from dotenv import load_dotenv
+
+# Carregar variáveis de ambiente
+load_dotenv()
 
 app = Flask(__name__)
-app.config['UPLOAD_FOLDER'] = 'bots_storage'
 app.config['MAX_CONTENT_LENGTH'] = 50 * 1024 * 1024  # 50MB max
 
-# Arquivo de metadados dos bots
-BOTS_DB = 'bots.json'
+# Configuração do Supabase
+SUPABASE_URL = os.getenv('SUPABASE_URL')
+SUPABASE_KEY = os.getenv('SUPABASE_KEY')
+STORAGE_BUCKET = 'bots-files'
 
-def load_bots():
-    if os.path.exists(BOTS_DB):
-        with open(BOTS_DB, 'r') as f:
-            return json.load(f)
-    return {}
+supabase: Client = None
 
-def save_bots(bots):
-    with open(BOTS_DB, 'w') as f:
-        json.dump(bots, f, indent=2)
+def get_supabase():
+    global supabase
+    if supabase is None:
+        if not SUPABASE_URL or not SUPABASE_KEY:
+            raise Exception("Configure SUPABASE_URL e SUPABASE_KEY no arquivo .env")
+        supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
+    return supabase
 
 @app.route('/')
 def index():
-    bots = load_bots()
+    try:
+        client = get_supabase()
+        response = client.table('bots').select('*').order('created_at', desc=True).execute()
+        bots = response.data
+    except Exception as e:
+        bots = []
+        print(f"Erro ao carregar bots: {e}")
     return render_template('index.html', bots=bots)
 
 @app.route('/upload', methods=['POST'])
@@ -39,59 +50,111 @@ def upload_bot():
     name = request.form.get('name', 'Bot sem nome')
     description = request.form.get('description', '')
     
-    bot_id = str(uuid.uuid4())[:8]
-    filename = secure_filename(file.filename)
-    filepath = os.path.join(app.config['UPLOAD_FOLDER'], f"{bot_id}_{filename}")
-    file.save(filepath)
-    
-    bots = load_bots()
-    bots[bot_id] = {
-        'id': bot_id,
-        'name': name,
-        'description': description,
-        'filename': filename,
-        'filepath': filepath,
-        'uploaded_at': datetime.now().isoformat(),
-        'size': os.path.getsize(filepath)
-    }
-    save_bots(bots)
-    
-    return jsonify({'success': True, 'bot_id': bot_id})
+    try:
+        client = get_supabase()
+        
+        # Ler o conteúdo do arquivo
+        file_content = file.read()
+        filename = secure_filename(file.filename)
+        
+        # Criar nome único para o storage
+        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+        storage_path = f"{timestamp}_{filename}"
+        
+        # Upload para o Supabase Storage
+        client.storage.from_(STORAGE_BUCKET).upload(
+            path=storage_path,
+            file=file_content,
+            file_options={"content-type": file.content_type or "application/octet-stream"}
+        )
+        
+        # Salvar metadados no banco de dados
+        bot_data = {
+            'name': name,
+            'description': description,
+            'filename': filename,
+            'storage_path': storage_path,
+            'file_size': len(file_content)
+        }
+        
+        result = client.table('bots').insert(bot_data).execute()
+        bot_id = result.data[0]['id']
+        
+        return jsonify({'success': True, 'bot_id': bot_id})
+        
+    except Exception as e:
+        print(f"Erro no upload: {e}")
+        return jsonify({'error': str(e)}), 500
 
 @app.route('/bots')
 def list_bots():
-    bots = load_bots()
-    return jsonify(list(bots.values()))
+    try:
+        client = get_supabase()
+        response = client.table('bots').select('*').order('created_at', desc=True).execute()
+        return jsonify(response.data)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 @app.route('/bots/<bot_id>')
 def get_bot(bot_id):
-    bots = load_bots()
-    if bot_id in bots:
-        return jsonify(bots[bot_id])
-    return jsonify({'error': 'Bot não encontrado'}), 404
+    try:
+        client = get_supabase()
+        response = client.table('bots').select('*').eq('id', bot_id).execute()
+        if response.data:
+            return jsonify(response.data[0])
+        return jsonify({'error': 'Bot não encontrado'}), 404
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 @app.route('/bots/<bot_id>/download')
 def download_bot(bot_id):
-    bots = load_bots()
-    if bot_id in bots:
-        bot = bots[bot_id]
-        directory = os.path.dirname(bot['filepath'])
-        filename = os.path.basename(bot['filepath'])
-        return send_from_directory(directory, filename, as_attachment=True)
-    return jsonify({'error': 'Bot não encontrado'}), 404
+    try:
+        client = get_supabase()
+        
+        # Buscar metadados do bot
+        response = client.table('bots').select('*').eq('id', bot_id).execute()
+        if not response.data:
+            return jsonify({'error': 'Bot não encontrado'}), 404
+        
+        bot = response.data[0]
+        
+        # Download do arquivo do Storage
+        file_data = client.storage.from_(STORAGE_BUCKET).download(bot['storage_path'])
+        
+        return send_file(
+            io.BytesIO(file_data),
+            as_attachment=True,
+            download_name=bot['filename'],
+            mimetype='application/octet-stream'
+        )
+        
+    except Exception as e:
+        print(f"Erro no download: {e}")
+        return jsonify({'error': str(e)}), 500
 
 @app.route('/bots/<bot_id>', methods=['DELETE'])
 def delete_bot(bot_id):
-    bots = load_bots()
-    if bot_id in bots:
-        bot = bots[bot_id]
-        if os.path.exists(bot['filepath']):
-            os.remove(bot['filepath'])
-        del bots[bot_id]
-        save_bots(bots)
+    try:
+        client = get_supabase()
+        
+        # Buscar metadados do bot
+        response = client.table('bots').select('*').eq('id', bot_id).execute()
+        if not response.data:
+            return jsonify({'error': 'Bot não encontrado'}), 404
+        
+        bot = response.data[0]
+        
+        # Deletar arquivo do Storage
+        client.storage.from_(STORAGE_BUCKET).remove([bot['storage_path']])
+        
+        # Deletar registro do banco
+        client.table('bots').delete().eq('id', bot_id).execute()
+        
         return jsonify({'success': True})
-    return jsonify({'error': 'Bot não encontrado'}), 404
+        
+    except Exception as e:
+        print(f"Erro ao deletar: {e}")
+        return jsonify({'error': str(e)}), 500
 
 if __name__ == '__main__':
-    os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
     app.run(host='0.0.0.0', port=5000, debug=True)
