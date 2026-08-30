@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Servidor de Bots WhatsApp</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🤖 Servidor de Bots WhatsApp</h1>
+            <p>Armazene e gerencie seus bots de WhatsApp</p>
+        </header>
+
+        <section class="upload-section">
+            <h2>📤 Enviar Novo Bot</h2>
+            <form id="uploadForm">
+                <div class="form-group">
+                    <label for="botName">Nome do Bot:</label>
+                    <input type="text" id="botName" name="name" required placeholder="Ex: Meu Bot de Atendimento">
+                </div>
+                <div class="form-group">
+                    <label for="botDescription">Descrição:</label>
+                    <textarea id="botDescription" name="description" placeholder="Descreva o que seu bot faz..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="botFile">Arquivo do Bot:</label>
+                    <input type="file" id="botFile" name="file" required>
+                </div>
+                <button type="submit" class="btn btn-primary">Enviar Bot</button>
+            </form>
+            <div id="uploadStatus"></div>
+        </section>
+
+        <section class="bots-section">
+            <h2>📋 Seus Bots</h2>
+            <div id="botsList" class="bots-grid">
+                {% for bot_id, bot in bots.items() %}
+                <div class="bot-card" data-id="{{ bot_id }}">
+                    <h3>{{ bot.name }}</h3>
+                    <p class="description">{{ bot.description or 'Sem descrição' }}</p>
+                    <div class="bot-meta">
+                        <span class="filename">📄 {{ bot.filename }}</span>
+                        <span class="size">{{ "%.2f"|format(bot.size / 1024 / 1024) }} MB</span>
+                    </div>
+                    <div class="bot-actions">
+                        <a href="/bots/{{ bot_id }}/download" class="btn btn-download">⬇️ Download</a>
+                        <button class="btn btn-delete" onclick="deleteBot('{{ bot_id }}')">🗑️ Excluir</button>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% if not bots %}
+            <p class="empty-message">Nenhum bot armazenado ainda. Envie seu primeiro bot!</p>
+            {% endif %}
+        </section>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>
